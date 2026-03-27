@@ -12,7 +12,7 @@ Full SPI driver with DMX transmit, DMX receive, RDM, BLE, and linking support.
 | DMX transmit (internally generated) | ✅ | – |
 | DMX receive (callback + polling) | – | ✅ |
 | RDM Responder (via SPI) | – | ✅ |
-| RDM Controller (via SPI) | ✅ (paid option) | – |
+| RDM Controller (via SPI) | ✅ (TimoTwo FX only) | – |
 | CRMX / W-DMX G3 / G4S protocol | ✅ | ✅ |
 | Linking / Unlink | ✅ | ✅ |
 | BLE configuration (CRMX Toolbox app) | ✅ | ✅ |
@@ -22,6 +22,9 @@ Full SPI driver with DMX transmit, DMX receive, RDM, BLE, and linking support.
 | OEM info (CRMX Toolbox) | ✅ | ✅ |
 | Battery level reporting (BLE) | ✅ | ✅ |
 | Reboot detection (lollipop counter) | ✅ | ✅ |
+
+> **Note:** RDM Controller (TX) requires the **TimoTwo FX** hardware variant.  
+> The standard **TimoTwo** module does not support this feature — `hasRdmTxOption()` will return `false`.
 
 ---
 
@@ -219,7 +222,7 @@ void getVersion(hwVersion, swVersion);
 uint8_t getLinkQuality();       // 0–255 (255 = 100%) — RX only
 uint8_t getDmxSource();         // TIMO_SRC_NONE / _UART / _WIRELESS / _SPI / _BLE
 uint8_t getLollipop();          // < 128 = module rebooted since last check
-bool hasRdmTxOption();          // True if RDM Controller option is installed
+bool hasRdmTxOption();          // True if running on TimoTwo FX hardware (RDM Controller capable)
 uint8_t readIrqFlags();
 uint8_t readExtIrqFlags();
 ```
@@ -235,6 +238,19 @@ TimoResult spiCommand(cmd, txData[], rxData[], length);
 ---
 
 ## Important Notes
+
+### TimoTwo vs. TimoTwo FX
+
+This library targets the **TimoTwo FX** module. Most features work identically on the standard **TimoTwo**, with one exception:
+
+| Feature | TimoTwo | TimoTwo FX |
+|---|---|---|
+| DMX TX / RX | ✅ | ✅ |
+| RDM Responder (RX) | ✅ | ✅ |
+| RDM Controller (TX) | ❌ | ✅ |
+| BLE, linking, all other features | ✅ | ✅ |
+
+Use `hasRdmTxOption()` at runtime to check whether RDM Controller is available on your hardware.
 
 ### Module reboot on certain register writes
 
@@ -267,7 +283,7 @@ The TimoTwo FX operates at **3.3 V logic**. If you use a 5 V Arduino (Uno, Nano,
 | Module does not respond / TIMEOUT | Check SPI wiring; verify 3.3 V logic (use level shifter on 5 V boards) |
 | SPI timeout | Ensure SPI clock ≤ 2 MHz; check CS setup timing |
 | Cannot link | Start linking on both devices; confirm TX and RX use the same RF protocol |
-| RDM TX not working | Check `hasRdmTxOption()` — the RDM Controller feature requires a paid option |
+| RDM TX not working | Check `hasRdmTxOption()` — RDM Controller is only available on the TimoTwo FX hardware |
 | Module keeps rebooting | Normal after writing CONFIG/BLE/LINKING_KEY — the 200 ms delay handles this |
 | No DMX signal (RX) | Confirm the TX is linked and transmitting; check `getDmxSource()` |
 | BLE not visible in app | Confirm `setBleEnabled(true)` was called; allow ~2 seconds for BLE advertisement |
